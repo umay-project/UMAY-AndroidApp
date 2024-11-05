@@ -47,7 +47,7 @@ class LoginActivity : AppCompatActivity() {
             // Can navigate to a RegistrationActivity
         }
     }
-
+    //
     private fun loginUser(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
