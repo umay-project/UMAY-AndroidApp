@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "884452020424",
-    "project_id": "rescueapp-3a8a8",
-    "storage_bucket": "rescueapp-3a8a8.firebasestorage.app"
+    "project_number": "303783898825",
+    "project_id": "umay-1a938",
+    "storage_bucket": "umay-1a938.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:884452020424:android:33590dc8c7dd8b05d1d5fd",
+        "mobilesdk_app_id": "1:303783898825:android:ba61b6cc490a30e5ca2718",
         "android_client_info": {
           "package_name": "com.example.rescueapp"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDSoVKd5RDCWXknUxxDswer53VrkeqfN18"
+          "current_key": "AIzaSyCBO14ITrXYckoFIJSrcp3iem_0FFz1XeU"
         }
       ],
       "services": {

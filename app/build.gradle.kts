@@ -56,10 +56,16 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-libraries
     implementation(libs.firebase.auth.ktx)
     implementation (platform("com.google.firebase:firebase-auth"))
+    implementation ("com.google.android.gms:play-services-maps:18.0.2")
+
 
 
     // Testing dependencies

@@ -9,9 +9,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.rescueapp" />
-                  <option name="mobileSdkAppId" value="1:884452020424:android:33590dc8c7dd8b05d1d5fd" />
-                  <option name="projectId" value="rescueapp-3a8a8" />
-                  <option name="projectNumber" value="884452020424" />
+                  <option name="mobileSdkAppId" value="1:303783898825:android:ba61b6cc490a30e5ca2718" />
+                  <option name="projectId" value="umay-1a938" />
+                  <option name="projectNumber" value="303783898825" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
