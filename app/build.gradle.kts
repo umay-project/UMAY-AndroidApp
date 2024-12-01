@@ -55,23 +55,23 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
 
-    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
     // TODO: Add the dependencies for Firebase products you want to use
-    // When using the BoM, don't specify versions in Firebase dependencies
     implementation("com.google.firebase:firebase-analytics")
-    // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
     implementation(libs.firebase.auth.ktx)
     implementation (platform("com.google.firebase:firebase-auth"))
     implementation ("com.google.android.gms:play-services-maps:18.0.2")
 
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
 
-    // Testing dependencies
+
+
     testImplementation(libs.junit)
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")  // Optional JUnit 5
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")  // Optional JUnit 5
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }

@@ -16,8 +16,7 @@ class NotificationsFragment : Fragment() {
 
     private var _binding: FragmentNotificationsBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+
     private val binding get() = _binding!!
 
     override fun onCreateView(
@@ -47,6 +46,6 @@ class NotificationsFragment : Fragment() {
         FirebaseAuth.getInstance().signOut()
         val intent = Intent(activity, LoginActivity::class.java)
         startActivity(intent)
-        activity?.finish()  // Close MainActivity
+        activity?.finish()
     }
 }

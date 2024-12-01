@@ -23,7 +23,6 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
         emailEditText = findViewById(R.id.emailEditText)
@@ -43,21 +42,18 @@ class LoginActivity : AppCompatActivity() {
         }
 
         registerTextView.setOnClickListener {
-            // Handle registration if needed
-            // Can navigate to a RegistrationActivity
+
         }
     }
-    //
+
     private fun loginUser(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    // Login success, navigate to MainActivity
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
-                    finish()  // Close LoginActivity
+                    finish()
                 } else {
-                    // If login fails, show a message
                     Toast.makeText(this, "Authentication failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
