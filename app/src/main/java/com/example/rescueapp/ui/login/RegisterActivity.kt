@@ -71,13 +71,12 @@ class RegisterActivity : AppCompatActivity() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    // Add user data to Firestore
                     val userId = auth.currentUser?.uid ?: ""
                     val user = mapOf(
                         "name" to name,
                         "surname" to surname,
                         "email" to email,
-                        "role" to "User" // Default role for new users
+                        "role" to "User"
                     )
 
                     db.collection("users").document(userId)

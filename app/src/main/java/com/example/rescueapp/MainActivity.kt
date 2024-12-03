@@ -24,17 +24,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Firebase Auth and Firestore
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        // Inflate the binding
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val navView: BottomNavigationView = binding.navView
 
-        // Redirect to LoginActivity if the user is not authenticated
         if (auth.currentUser == null) {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
@@ -47,7 +44,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Set up navigation
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
         val appBarConfiguration = AppBarConfiguration(
             setOf(
@@ -65,14 +61,13 @@ class MainActivity : AppCompatActivity() {
                 if (document != null) {
                     val role = document.getString("role")
                     if (role == "Operator") {
-                        // Add Operator menu item dynamically
                         val menu = navView.menu
                         menu.add(
                             Menu.NONE,
                             R.id.navigation_operator,
                             Menu.NONE,
                             "Operator"
-                        ).setIcon(R.drawable.operator) // Replace with your operator icon
+                        ).setIcon(R.drawable.operator)
                     } else {
                         Log.d("MainActivity", "User is not an operator")
                     }
