@@ -22,4 +22,9 @@
         android:name="com.example.rescueapp.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
+    <fragment
+        android:id="@+id/navigation_operator"
+        android:name="com.example.rescueapp.ui.operator.OperatorFragment"
+        android:label="@string/title_operators"
+        tools:layout="@layout/fragment_operator" />
 </navigation>

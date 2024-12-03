@@ -22,11 +22,13 @@ import com.google.android.gms.maps.model.MarkerOptions
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.google.firebase.firestore.FirebaseFirestore
 
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
+    private lateinit var db: FirebaseFirestore
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     override fun onCreateView(
@@ -42,6 +44,11 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         return rootView
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        db = FirebaseFirestore.getInstance()
     }
 
 

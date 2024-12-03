@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.rescueapp.databinding.FragmentNotificationsBinding
 import com.google.firebase.auth.FirebaseAuth
 import android.content.Intent
-import com.example.rescueapp.ui.LoginActivity
+import com.example.rescueapp.ui.login.LoginActivity
 
 class NotificationsFragment : Fragment() {
 

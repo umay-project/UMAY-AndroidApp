@@ -1,4 +1,4 @@
-package com.example.rescueapp.ui
+package com.example.rescueapp.ui.login
 
 import android.content.Intent
 import android.os.Bundle
@@ -42,7 +42,8 @@ class LoginActivity : AppCompatActivity() {
         }
 
         registerTextView.setOnClickListener {
-
+            val intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
         }
     }
 
