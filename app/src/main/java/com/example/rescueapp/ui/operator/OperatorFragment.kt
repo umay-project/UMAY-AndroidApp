@@ -60,11 +60,9 @@ class OperatorFragment : Fragment() {
                 if (document != null) {
                     val role = document.getString("role")
                     if (role == "Operator") {
-                        // User is an operator, enable buttons
                         startListeningButton.visibility = View.VISIBLE
                         stopListeningButton.visibility = View.VISIBLE
                     } else {
-                        // User is not an operator
                         Toast.makeText(requireContext(), "Access denied: Not an operator", Toast.LENGTH_SHORT).show()
                         startListeningButton.visibility = View.GONE
                         stopListeningButton.visibility = View.GONE

@@ -65,7 +65,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                                 MarkerOptions()
                                     .position(position)
                                     .title("Debris Site")
-                                    .snippet("Audio: ${site.audioFileName}\nTimestamp: ${site.timestamp}")
+                                    //.snippet("Audio: ${site.audioFileName}\nTimestamp: ${site.timestamp}")
                             )
                         }
 

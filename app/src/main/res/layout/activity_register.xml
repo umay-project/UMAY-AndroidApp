@@ -38,6 +38,15 @@
         android:layout_marginTop="8dp" />
 
     <EditText
+        android:id="@+id/phoneEditText"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:hint="Phone Number"
+        android:inputType="phone"
+        android:layout_marginTop="8dp" />
+
+
+    <EditText
         android:id="@+id/passwordEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"

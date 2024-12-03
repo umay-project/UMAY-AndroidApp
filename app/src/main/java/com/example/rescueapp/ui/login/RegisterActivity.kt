@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.rescueapp.R
+import com.example.rescueapp.ui.models.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -17,6 +18,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var nameEditText: EditText
     private lateinit var surnameEditText: EditText
     private lateinit var emailEditText: EditText
+    private lateinit var phoneEditText: EditText
     private lateinit var passwordEditText: EditText
     private lateinit var confirmPasswordEditText: EditText
     private lateinit var registerButton: Button
@@ -35,6 +37,7 @@ class RegisterActivity : AppCompatActivity() {
         nameEditText = findViewById(R.id.nameEditText)
         surnameEditText = findViewById(R.id.surnameEditText)
         emailEditText = findViewById(R.id.emailEditText)
+        phoneEditText = findViewById(R.id.phoneEditText)
         passwordEditText = findViewById(R.id.passwordEditText)
         confirmPasswordEditText = findViewById(R.id.confirmPasswordEditText)
         registerButton = findViewById(R.id.registerButton)
@@ -55,10 +58,11 @@ class RegisterActivity : AppCompatActivity() {
         val name = nameEditText.text.toString().trim()
         val surname = surnameEditText.text.toString().trim()
         val email = emailEditText.text.toString().trim()
+        val phone = phoneEditText.text.toString().trim()
         val password = passwordEditText.text.toString().trim()
         val confirmPassword = confirmPasswordEditText.text.toString().trim()
 
-        if (name.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+        if (name.isEmpty() || surname.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "All fields are required", Toast.LENGTH_SHORT).show()
             return
         }
@@ -72,26 +76,38 @@ class RegisterActivity : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     val userId = auth.currentUser?.uid ?: ""
-                    val user = mapOf(
-                        "name" to name,
-                        "surname" to surname,
-                        "email" to email,
-                        "role" to "User"
+                    val permissions = User.Permissions(
+                        editUsers = false,
+                        editDisasterData = false,
+                        adminDashboardAccess = false,
+                        activateListening = false
+                    )
+
+                    val newUser = User(
+                        id = userId,
+                        name = name,
+                        surname = surname,
+                        email = email,
+                        phone = phone,
+                        role = "User",
+                        permissions = permissions,
+                        teamName = null,
+                        image = null
                     )
 
                     db.collection("users").document(userId)
-                        .set(user)
+                        .set(newUser)
                         .addOnSuccessListener {
                             Log.d("Firestore", "User added successfully")
+                            Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(this, LoginActivity::class.java)
+                            startActivity(intent)
+                            finish()
                         }
                         .addOnFailureListener { e ->
                             Log.e("Firestore", "Error adding user", e)
+                            Toast.makeText(this, "Error saving user data: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
-
-                    Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show()
-                    val intent = Intent(this, LoginActivity::class.java)
-                    startActivity(intent)
-                    finish()
                 } else {
                     Toast.makeText(this, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
