@@ -11,7 +11,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.rescueapp.R
-import com.example.rescueapp.ui.controller.api
 import com.example.rescueapp.ui.models.DebrisSite
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -19,16 +18,14 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import com.google.firebase.firestore.FirebaseFirestore
-
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
-    private lateinit var db: FirebaseFirestore
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     override fun onCreateView(
@@ -37,6 +34,40 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     ): View? {
         val rootView = inflater.inflate(R.layout.fragment_home, container, false)
 
+        // Initialize Places API
+        if (!Places.isInitialized()) {
+            Places.initialize(requireContext(), "AIzaSyBwwAKgOZxVsEHn6fMVAbkObDpopTdxWXY") // Replace with your API key
+        }
+
+        // Add AutocompleteSupportFragment programmatically
+        val autocompleteFragment = AutocompleteSupportFragment.newInstance()
+        childFragmentManager.beginTransaction()
+            .replace(R.id.autocomplete_fragment_container, autocompleteFragment)
+            .commit()
+
+        autocompleteFragment.setPlaceFields(
+            listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
+        )
+
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                val latLng = place.latLng
+                if (latLng != null) {
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12f))
+                    map.addMarker(
+                        MarkerOptions()
+                            .position(latLng)
+                            .title(place.name)
+                    )
+                }
+            }
+
+            override fun onError(status: com.google.android.gms.common.api.Status) {
+                Toast.makeText(requireContext(), "Error: $status", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        // Initialize Google Maps
         val mapFragment = SupportMapFragment.newInstance()
         childFragmentManager.beginTransaction()
             .replace(R.id.mapContainer, mapFragment)
@@ -46,45 +77,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         return rootView
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        db = FirebaseFirestore.getInstance()
-    }
-
-
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-
-        api.getDebrisSites().enqueue(object : Callback<List<DebrisSite>> {
-            override fun onResponse(call: Call<List<DebrisSite>>, response: Response<List<DebrisSite>>) {
-                if (response.isSuccessful) {
-                    response.body()?.let { debrisSites ->
-                        for (site in debrisSites) {
-                            val position = LatLng(site.latitude, site.longitude)
-                            map.addMarker(
-                                MarkerOptions()
-                                    .position(position)
-                                    .title("Debris Site")
-                                    //.snippet("Audio: ${site.audioFileName}\nTimestamp: ${site.timestamp}")
-                            )
-                        }
-
-                        if (debrisSites.isNotEmpty()) {
-                            val firstSite = LatLng(debrisSites[0].latitude, debrisSites[0].longitude)
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(firstSite, 10f))
-                        }
-                    }
-                } else {
-                    Toast.makeText(requireContext(), "Failed to load data", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<List<DebrisSite>>, t: Throwable) {
-                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
+        enableMyLocation()
     }
-
 
     private fun enableMyLocation() {
         if (ContextCompat.checkSelfPermission(
@@ -109,13 +105,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     ) {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ContextCompat.checkSelfPermission(
-                        requireContext(),
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    map.isMyLocationEnabled = true
-                }
+                enableMyLocation()
             }
         }
     }
