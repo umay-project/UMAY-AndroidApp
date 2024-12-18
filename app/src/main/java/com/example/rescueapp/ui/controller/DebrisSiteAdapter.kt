@@ -7,6 +7,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rescueapp.R
 import com.example.rescueapp.ui.models.DebrisSite
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 
 class DebrisSiteAdapter(private val debrisSites: List<DebrisSite>) :
@@ -28,8 +30,21 @@ class DebrisSiteAdapter(private val debrisSites: List<DebrisSite>) :
         val debrisSite = debrisSites[position]
         holder.timestampTextView.text = "Timestamp: ${debrisSite.timestamp}"
         holder.audioFileTextView.text = "Audio File: ${debrisSite.audioFileName}"
-        holder.locationTextView.text = "Location: ${debrisSite.latitude}, ${debrisSite.longitude}"
+
+        val convertedLatitude = convertToDecimalDegrees(debrisSite.latitude)
+        val convertedLongitude = convertToDecimalDegrees(debrisSite.longitude)
+
+        holder.locationTextView.text = "Location: $convertedLatitude, $convertedLongitude"
     }
 
     override fun getItemCount(): Int = debrisSites.size
+
+    private fun convertToDecimalDegrees(coordinate: Double): Double {
+        val degrees = (coordinate / 100).toInt()
+        val minutes = coordinate % 100
+        val decimalDegrees = degrees + (minutes / 60.0)
+
+        return BigDecimal(decimalDegrees).setScale(8, RoundingMode.HALF_UP).toDouble()
+    }
 }
+

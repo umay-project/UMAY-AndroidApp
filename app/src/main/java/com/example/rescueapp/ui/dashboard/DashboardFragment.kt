@@ -41,7 +41,7 @@ class DashboardFragment : Fragment() {
 
     private fun fetchDebrisSites() {
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://umay.develop-er.org/") // Replace with the base URL
+            .baseUrl("https://umay.develop-er.org/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(OkHttpClient())
             .build()

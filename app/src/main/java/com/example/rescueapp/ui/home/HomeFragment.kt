@@ -11,22 +11,30 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.rescueapp.R
+import com.example.rescueapp.ui.controller.api
 import com.example.rescueapp.ui.models.DebrisSite
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.*
+import com.google.android.gms.maps.model.*
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Log
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import java.math.BigDecimal
+import java.math.RoundingMode
+
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
+    private var API_KEY = "AIzaSyBwwAKgOZxVsEHn6fMVAbkObDpopTdxWXY"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,12 +42,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     ): View? {
         val rootView = inflater.inflate(R.layout.fragment_home, container, false)
 
-        // Initialize Places API
         if (!Places.isInitialized()) {
-            Places.initialize(requireContext(), "AIzaSyBwwAKgOZxVsEHn6fMVAbkObDpopTdxWXY") // Replace with your API key
+            Places.initialize(requireContext(), API_KEY)
         }
 
-        // Add AutocompleteSupportFragment programmatically
         val autocompleteFragment = AutocompleteSupportFragment.newInstance()
         childFragmentManager.beginTransaction()
             .replace(R.id.autocomplete_fragment_container, autocompleteFragment)
@@ -67,7 +73,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
         })
 
-        // Initialize Google Maps
         val mapFragment = SupportMapFragment.newInstance()
         childFragmentManager.beginTransaction()
             .replace(R.id.mapContainer, mapFragment)
@@ -80,7 +85,61 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         enableMyLocation()
+
+        fetchDebrisSites()
     }
+
+    private fun getResizedBitmapIcon(resourceId: Int, width: Int, height: Int): BitmapDescriptor? {
+        val bitmap = BitmapFactory.decodeResource(resources, resourceId)
+        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false)
+        return BitmapDescriptorFactory.fromBitmap(resizedBitmap)
+    }
+
+    private fun fetchDebrisSites() {
+        api.getDebrisSites().enqueue(object : Callback<List<DebrisSite>> {
+            override fun onResponse(call: Call<List<DebrisSite>>, response: Response<List<DebrisSite>>) {
+                if (response.isSuccessful) {
+                    response.body()?.let { debrisSites ->
+                        for (site in debrisSites) {
+                            val convertedLatitude = convertToDecimalDegrees(site.latitude)
+                            val convertedLongitude = convertToDecimalDegrees(site.longitude)
+                            val position = LatLng(convertedLatitude, convertedLongitude)
+
+                            Log.d("DebrisMarker", "Position: $convertedLatitude, $convertedLongitude")
+
+                            val icon = getResizedBitmapIcon(R.drawable.ic_debris_marker, 100, 100)
+                            if (icon != null) {
+                                map.addMarker(
+                                    MarkerOptions()
+                                        .position(position)
+                                        .title("Debris Site: ${site.audioFileName}")
+                                        .snippet("Timestamp: ${site.timestamp}")
+                                        .icon(icon)
+                                )
+                            } else {
+                                Log.e("DebrisMarker", "Failed to load marker icon")
+                            }
+                        }
+
+                        if (debrisSites.isNotEmpty()) {
+                            val firstSite = LatLng(
+                                convertToDecimalDegrees(debrisSites[0].latitude),
+                                convertToDecimalDegrees(debrisSites[0].longitude)
+                            )
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(firstSite, 12f))
+                        }
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Failed to load debris sites", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<List<DebrisSite>>, t: Throwable) {
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
 
     private fun enableMyLocation() {
         if (ContextCompat.checkSelfPermission(
@@ -96,6 +155,14 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         }
+    }
+
+    private fun convertToDecimalDegrees(coordinate: Double): Double {
+        val degrees = (coordinate / 100).toInt()
+        val minutes = coordinate % 100
+        val decimalDegrees = degrees + (minutes / 60.0)
+
+        return BigDecimal(decimalDegrees).setScale(8, RoundingMode.HALF_UP).toDouble()
     }
 
     override fun onRequestPermissionsResult(
