@@ -141,6 +141,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     }
 
 
+
+
     private fun enableMyLocation() {
         if (ContextCompat.checkSelfPermission(
                 requireContext(),
