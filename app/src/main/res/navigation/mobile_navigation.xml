@@ -5,11 +5,6 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@+id/navigation_home">
 
-    <fragment
-        android:id="@+id/navigation_location"
-        android:name="com.example.rescueapp.ui.location.LocationSelectionFragment"
-        android:label="Home"
-        tools:layout="@layout/fragment_location_selection"/>
 
     <fragment
         android:id="@+id/navigation_home"

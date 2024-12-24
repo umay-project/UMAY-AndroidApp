@@ -5,9 +5,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class DashboardViewModel : ViewModel() {
+    private val _bounds = MutableLiveData<Bounds>()
+    val bounds: LiveData<Bounds> get() = _bounds
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is dashboard Fragment"
+    fun updateBounds(minLat: Double, maxLat: Double, minLong: Double, maxLong: Double) {
+        _bounds.value = Bounds(minLat, maxLat, minLong, maxLong)
     }
-    val text: LiveData<String> = _text
+
+    data class Bounds(
+        val minLat: Double,
+        val maxLat: Double,
+        val minLong: Double,
+        val maxLong: Double
+    )
 }
