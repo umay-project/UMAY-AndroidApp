@@ -15,10 +15,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.rescueapp.R
+import com.example.rescueapp.ui.controller.CustomClusterRenderer
 import com.example.rescueapp.ui.controller.api
 import com.example.rescueapp.ui.dashboard.DashboardViewModel
 import com.example.rescueapp.ui.models.DebrisClusterItem
 import com.example.rescueapp.ui.models.DebrisSite
+import com.example.rescueapp.ui.models.FakeDebrisSite
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -93,15 +95,26 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         return rootView
     }
 
+    private var currentZoomLevel: Float = 0f
+
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         enableMyLocation()
 
         clusterManager = ClusterManager(requireContext(), map)
+
+        val customRenderer = CustomClusterRenderer(requireContext(), map, clusterManager)
+        clusterManager.renderer = customRenderer
+
         map.setOnCameraIdleListener(clusterManager)
         map.setOnMarkerClickListener(clusterManager)
 
+        val fakeData = generateFakeData()
+        showFakeDataWithCluster(fakeData)
+
         map.setOnCameraIdleListener {
+            currentZoomLevel = map.cameraPosition.zoom
+            clusterManager.onCameraIdle()
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastQueryTime > QUERY_DELAY) {
                 val bounds = map.projection.visibleRegion.latLngBounds
@@ -148,7 +161,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                             convertToDecimalDegrees(debrisSites[0].latitude),
                             convertToDecimalDegrees(debrisSites[0].longitude)
                         )
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(firstSite, 12f))
+                        //map.moveCamera(CameraUpdateFactory.newLatLngZoom(firstSite, 12f))
 
                         debrisSites.forEach { site ->
                             val convertedLatitude = convertToDecimalDegrees(site.latitude)
@@ -240,4 +253,28 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
         }
     }
+
+    private fun generateFakeData(): List<FakeDebrisSite> {
+        return listOf(
+            FakeDebrisSite(41.015137, 28.979530, "Debris Site 1", "Timestamp: 2024-12-24 10:00"),
+            FakeDebrisSite(41.016500, 28.981000, "Debris Site 2", "Timestamp: 2024-12-24 11:00"),
+            FakeDebrisSite(41.017000, 28.983000, "Debris Site 3", "Timestamp: 2024-12-24 12:00"),
+            FakeDebrisSite(41.014000, 28.982000, "Debris Site 4", "Timestamp: 2024-12-24 13:00")
+        )
+    }
+    private fun showFakeDataWithCluster(fakeData: List<FakeDebrisSite>) {
+        clusterManager.clearItems()
+        fakeData.forEach { site ->
+            val clusterItem = DebrisClusterItem(
+                id = "fake_${site.latitude}_${site.longitude}",
+                latLng = LatLng(site.latitude, site.longitude),
+                clusterTitle = site.title,
+                clusterSnippet = site.snippet
+            )
+            clusterManager.addItem(clusterItem)
+        }
+        clusterManager.cluster()
+    }
+
+
 }
