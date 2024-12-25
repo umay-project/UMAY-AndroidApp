@@ -30,6 +30,9 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.Task
 import com.google.maps.android.clustering.ClusterManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -37,15 +40,19 @@ import retrofit2.Response
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+
 class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var clusterManager: ClusterManager<DebrisClusterItem>
     private lateinit var dashboardViewModel: DashboardViewModel
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
+    private var lastBounds: LatLngBounds? = null
     private var API_KEY = "AIzaSyBwwAKgOZxVsEHn6fMVAbkObDpopTdxWXY"
     private var lastQueryTime: Long = 0
     private val QUERY_DELAY = 1000L
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -101,6 +108,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         map = googleMap
         enableMyLocation()
 
+
         clusterManager = ClusterManager(requireContext(), map)
 
         val customRenderer = CustomClusterRenderer(requireContext(), map, clusterManager)
@@ -109,30 +117,37 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         map.setOnCameraIdleListener(clusterManager)
         map.setOnMarkerClickListener(clusterManager)
 
-        val fakeData = generateFakeData()
-        showFakeDataWithCluster(fakeData)
+//        val fakeData = generateFakeData()
+//        showFakeDataWithCluster(fakeData)
+//
+//        val fakeData2 = generateData()
+//        showDataWithCluster(fakeData2)
 
         map.setOnCameraIdleListener {
+
             currentZoomLevel = map.cameraPosition.zoom
             clusterManager.onCameraIdle()
+
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastQueryTime > QUERY_DELAY) {
                 val bounds = map.projection.visibleRegion.latLngBounds
 
-                dashboardViewModel.updateBounds(
-                    bounds.southwest.latitude,
-                    bounds.northeast.latitude,
-                    bounds.southwest.longitude,
-                    bounds.northeast.longitude
-                )
+                if (lastBounds == null || !lastBounds!!.contains(bounds.northeast) || !lastBounds!!.contains(bounds.southwest)) {
+                    lastBounds = bounds
+                    dashboardViewModel.updateBounds(
+                        bounds.southwest.latitude,
+                        bounds.northeast.latitude,
+                        bounds.southwest.longitude,
+                        bounds.northeast.longitude
+                    )
 
-                fetchAndClusterMarkers(
-                    bounds.southwest.latitude,
-                    bounds.northeast.latitude,
-                    bounds.southwest.longitude,
-                    bounds.northeast.longitude
-                )
-
+                    fetchAndClusterMarkers(
+                        bounds.southwest.latitude,
+                        bounds.northeast.latitude,
+                        bounds.southwest.longitude,
+                        bounds.northeast.longitude
+                    )
+                }
                 lastQueryTime = currentTime
             }
         }
@@ -231,6 +246,23 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             map.isMyLocationEnabled = true
+
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    val userLocation = LatLng(location.latitude, location.longitude)
+                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 18f))
+                    map.addMarker(
+                        MarkerOptions()
+                            .position(userLocation)
+                            .title("Mevcut Konum")
+                    )
+                } else {
+                    showDefaultLocation()
+                }
+            }.addOnFailureListener {
+                showDefaultLocation()
+            }
         } else {
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -239,6 +271,17 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             )
         }
     }
+
+    private fun showDefaultLocation() {
+        val defaultLocation = LatLng(41.015137, 28.979530)
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 16f))
+        map.addMarker(
+            MarkerOptions()
+                .position(defaultLocation)
+                .title("Varsayılan Konum")
+        )
+    }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -262,6 +305,30 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             FakeDebrisSite(41.014000, 28.982000, "Debris Site 4", "Timestamp: 2024-12-24 13:00")
         )
     }
+
+    private fun generateData(): List<DebrisSite> {
+        return listOf(
+            DebrisSite("1","1234567","audio1", 41.020535, 28.0730),
+            DebrisSite("2","1234567","audio2", 41.021535, 28.0730),
+            DebrisSite("3","1234567","audio3", 41.020535, 28.0830),
+            DebrisSite("4","1234567","audio4", 41.020535, 28.0930),
+            DebrisSite("5","1234567","audio5", 41.020535, 28.130),
+            DebrisSite("6","1234567","audio6", 41.022535, 28.0730),
+            DebrisSite("7","1234567","audio7", 41.019535, 28.1730),
+            DebrisSite("8","1234567","audio8", 41.020535, 28.0230),
+            DebrisSite("9","1234567","audio9", 41.025535, 28.1730),
+            DebrisSite("10","1234567","audio10", 41.020535, 28.2730),
+            DebrisSite("11","1234567","audio11", 41.022535, 28.0730),
+            DebrisSite("12","1234567","audio12", 41.021535, 28.130),
+            DebrisSite("13","1234567","audio13", 41.020535, 28.730),
+            DebrisSite("14","1234567","audio14", 41.020535, 28.2730),
+            DebrisSite("15","1234567","audio15", 41.0223535, 28.0730),
+            DebrisSite("16","1234567","audio16", 41.0203535, 28.2730),
+            DebrisSite("17","1234567","audio17", 41.020585, 28.23730),
+            DebrisSite("18","1234567","audio18", 41.020876, 28.07230),
+            )
+    }
+
     private fun showFakeDataWithCluster(fakeData: List<FakeDebrisSite>) {
         clusterManager.clearItems()
         fakeData.forEach { site ->
@@ -276,5 +343,18 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         clusterManager.cluster()
     }
 
+    private fun showDataWithCluster(data: List<DebrisSite>) {
+        data.forEach { site ->
+            val position = LatLng(site.latitude, site.longitude)
+            val clusterItem = DebrisClusterItem(
+                id = site._id,
+                latLng = position,
+                clusterTitle = "Debris Site: ${site.audioFileName}",
+                clusterSnippet = "Timestamp: ${site.timestamp}"
+            )
+            clusterManager.addItem(clusterItem)
+        }
+        clusterManager.cluster()
+    }
 
 }
