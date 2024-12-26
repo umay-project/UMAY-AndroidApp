@@ -17,6 +17,9 @@ import com.example.rescueapp.ui.models.DebrisSite
 import okhttp3.OkHttpClient
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class DashboardFragment : Fragment() {
 
@@ -80,5 +83,16 @@ class DashboardFragment : Fragment() {
         val degrees = coordinate.toInt()
         val minutes = ((coordinate - degrees) * 60).toInt()
         return degrees * 100 + minutes
+    }
+
+    fun convertTimestampToDateTime(timestamp: String): String {
+        return try {
+            val milliseconds = timestamp.toLong()
+            val date = Date(milliseconds)
+            val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            format.format(date)
+        } catch (e: Exception) {
+            "Invalid Timestamp"
+        }
     }
 }

@@ -5,9 +5,10 @@ import com.google.maps.android.clustering.ClusterItem
 
 data class DebrisClusterItem(
     val id: String,
-    private val latLng: LatLng,
-    private val clusterTitle: String,
-    private val clusterSnippet: String
+    val latLng: LatLng,
+    val clusterTitle: String,
+    val clusterSnippet: String,
+    val audioFileName: String
 ) : ClusterItem {
 
     override fun getPosition(): LatLng = latLng

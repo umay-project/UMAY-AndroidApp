@@ -8,6 +8,8 @@ import com.google.maps.android.clustering.view.DefaultClusterRenderer
 
 import android.os.Handler
 import android.os.Looper
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.MarkerOptions
 
 class CustomClusterRenderer(
     context: Context,
@@ -22,8 +24,16 @@ class CustomClusterRenderer(
         handler.post {
             zoomLevel = googleMap.cameraPosition.zoom
         }
-
         return cluster.size > 1 && zoomLevel < 15
     }
+
+    override fun onBeforeClusterItemRendered(item: DebrisClusterItem, markerOptions: MarkerOptions) {
+        super.onBeforeClusterItemRendered(item, markerOptions)
+        markerOptions
+            .title(item.clusterTitle)
+            .snippet(item.clusterSnippet)
+            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
+    }
+
 }
 
