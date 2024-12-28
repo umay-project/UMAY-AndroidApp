@@ -13,5 +13,15 @@ interface DebrisSiteApi {
         @Query("minLong") minLong: Int,
         @Query("maxLong") maxLong: Int
     ): Call<List<DebrisSite>>
+
+    @GET("get-records")
+    fun getDebrisSitesWithTime(
+        @Query("minLat") minLat: Int,
+        @Query("maxLat") maxLat: Int,
+        @Query("minLong") minLong: Int,
+        @Query("maxLong") maxLong: Int,
+        @Query("minTime") minTime: Long?,
+        @Query("maxTime") maxTime: Long?
+    ): Call<List<DebrisSite>>
 }
 
