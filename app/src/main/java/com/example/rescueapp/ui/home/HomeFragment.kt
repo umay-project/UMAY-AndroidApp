@@ -54,6 +54,11 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import android.media.AudioAttributes
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.IOException
 
 
 class HomeFragment : Fragment(), OnMapReadyCallback {
@@ -435,40 +440,94 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private var mediaPlayer: MediaPlayer? = null
 
     private fun playAudioFromURL(fileName: String) {
-        val sanitizedFileName = if (fileName.endsWith(".wav")) {
-            fileName.substringBeforeLast(".wav")
-        } else {
-            fileName
-        }
-
+        val sanitizedFileName = fileName.substringBeforeLast(".", "")
         val audioUrl = "http://umay.develop-er.org/get-audio?fileName=$sanitizedFileName"
+
         Log.d("AudioURL", "Requesting audio from URL: $audioUrl")
 
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer()
+        val loadingDialog = AlertDialog.Builder(requireContext())
+            .setMessage("Loading audio...")
+            .setCancelable(false)
+            .create()
+        loadingDialog.show()
 
-        try {
-            mediaPlayer?.apply {
-                setDataSource(audioUrl)
-                setOnPreparedListener {
-                    it.start()
-                    Toast.makeText(requireContext(), "Playing audio: $sanitizedFileName", Toast.LENGTH_SHORT).show()
+        val client = OkHttpClient()
+        val request = Request.Builder()
+            .url(audioUrl)
+            .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                activity?.runOnUiThread {
+                    loadingDialog.dismiss()
+                    Toast.makeText(requireContext(), "Failed to download audio: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
-                setOnCompletionListener {
-                    Toast.makeText(requireContext(), "Audio playback completed.", Toast.LENGTH_SHORT).show()
-                    release()
-                }
-                setOnErrorListener { _, what, extra ->
-                    Log.e("MediaPlayer", "Error occurred: what=$what, extra=$extra")
-                    Toast.makeText(requireContext(), "Error playing audio. What=$what, Extra=$extra", Toast.LENGTH_SHORT).show()
-                    true
-                }
-                prepareAsync()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(requireContext(), "Error initializing audio.", Toast.LENGTH_SHORT).show()
-        }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                if (!response.isSuccessful) {
+                    activity?.runOnUiThread {
+                        loadingDialog.dismiss()
+                        Toast.makeText(requireContext(), "Server error: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    }
+                    return
+                }
+
+                try {
+                    Log.d("AudioDebug", "Content-Type: ${response.header("Content-Type")}")
+
+                    val cacheDir = requireContext().cacheDir
+                    val tempFile = File(cacheDir, "temp_audio")
+                    tempFile.outputStream().use { fileOut ->
+                        response.body()?.byteStream()?.use { inputStream ->
+                            inputStream.copyTo(fileOut)
+                        }
+                    }
+
+                    activity?.runOnUiThread {
+                        try {
+                            mediaPlayer?.release()
+                            mediaPlayer = MediaPlayer().apply {
+                                setDataSource(tempFile.path)
+                                setAudioAttributes(
+                                    AudioAttributes.Builder()
+                                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                                        .build()
+                                )
+                                setOnPreparedListener {
+                                    loadingDialog.dismiss()
+                                    start()
+                                    Toast.makeText(requireContext(), "Playing audio", Toast.LENGTH_SHORT).show()
+                                }
+                                setOnCompletionListener {
+                                    release()
+                                    tempFile.delete()
+                                }
+                                setOnErrorListener { _, what, extra ->
+                                    loadingDialog.dismiss()
+                                    Log.e("MediaPlayer", "Error occurred: what=$what, extra=$extra")
+                                    Toast.makeText(requireContext(), "Error playing audio", Toast.LENGTH_SHORT).show()
+                                    tempFile.delete()
+                                    true
+                                }
+                                prepareAsync()
+                            }
+                        } catch (e: Exception) {
+                            loadingDialog.dismiss()
+                            Log.e("MediaPlayer", "Error setting up MediaPlayer", e)
+                            Toast.makeText(requireContext(), "Error playing audio: ${e.message}", Toast.LENGTH_SHORT).show()
+                            tempFile.delete()
+                        }
+                    }
+                } catch (e: Exception) {
+                    activity?.runOnUiThread {
+                        loadingDialog.dismiss()
+                        Toast.makeText(requireContext(), "Error processing audio: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
     }
 
 
@@ -515,7 +574,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -536,13 +594,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             val milliseconds = timestamp.toLong()
             val date = Date(milliseconds)
             val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            format.timeZone = TimeZone.getTimeZone("UTC") // Ensure the time zone is UTC
+            format.timeZone = TimeZone.getTimeZone("UTC")
             format.format(date)
         } catch (e: Exception) {
             "Invalid Timestamp"
         }
     }
-
-
-
 }
