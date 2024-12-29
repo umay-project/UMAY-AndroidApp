@@ -66,6 +66,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
     private lateinit var map: GoogleMap
     private lateinit var clusterManager: ClusterManager<DebrisClusterItem>
     private lateinit var dashboardViewModel: DashboardViewModel
+    private lateinit var homeViewModel: HomeViewModel
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
     private var lastBounds: LatLngBounds? = null
     private var API_KEY = "AIzaSyBwwAKgOZxVsEHn6fMVAbkObDpopTdxWXY"
@@ -106,6 +107,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         }
 
         dashboardViewModel = ViewModelProvider(requireActivity())[DashboardViewModel::class.java]
+        homeViewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
 
         val autocompleteFragment = AutocompleteSupportFragment.newInstance()
         childFragmentManager.beginTransaction()
@@ -206,6 +208,10 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         map = googleMap
         enableMyLocation()
 
+        homeViewModel.cameraPosition.value?.let { position ->
+            map.moveCamera(CameraUpdateFactory.newCameraPosition(position))
+        }
+
         clusterManager = ClusterManager(requireContext(), map)
 
         val customRenderer = CustomClusterRenderer(requireContext(), map, clusterManager)
@@ -221,6 +227,8 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
             currentZoomLevel = map.cameraPosition.zoom
             clusterManager.onCameraIdle()
+
+            homeViewModel.updateCameraPosition(map.cameraPosition)
 
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastQueryTime > QUERY_DELAY) {
@@ -581,21 +589,18 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         ) {
             map.isMyLocationEnabled = true
 
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    val userLocation = LatLng(location.latitude, location.longitude)
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 18f))
-                    map.addMarker(
-                        MarkerOptions()
-                            .position(userLocation)
-                            .title("Mevcut Konum")
-                    )
-                } else {
+            if (homeViewModel.cameraPosition.value == null) {
+                fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    if (location != null) {
+                        val userLocation = LatLng(location.latitude, location.longitude)
+                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 18f))
+                    } else {
+                        showDefaultLocation()
+                    }
+                }.addOnFailureListener {
                     showDefaultLocation()
                 }
-            }.addOnFailureListener {
-                showDefaultLocation()
             }
         } else {
             ActivityCompat.requestPermissions(
