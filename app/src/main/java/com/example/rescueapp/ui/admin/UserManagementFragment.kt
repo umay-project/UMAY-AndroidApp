@@ -83,11 +83,24 @@ class UserManagementFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = UserManagementAdapter(users) { user ->
-            showEditUserDialog(user)
-        }
+        adapter = UserManagementAdapter(
+            users = users,
+            onUserClick = { user -> showEditUserDialog(user) },
+            onDeleteClick = { user -> showDeleteConfirmationDialog(user) }
+        )
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
+    }
+
+    private fun showDeleteConfirmationDialog(user: User) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete User")
+            .setMessage("Are you sure you want to delete ${user.name} ${user.surname}?")
+            .setPositiveButton("Delete") { _, _ ->
+                deleteUser(user)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupSearchView() {
@@ -102,6 +115,43 @@ class UserManagementFragment : Fragment() {
                 return true
             }
         })
+    }
+
+    private fun deleteUser(user: User) {
+        val loadingDialog = AlertDialog.Builder(requireContext())
+            .setMessage("Deleting user...")
+            .setCancelable(false)
+            .create()
+        loadingDialog.show()
+
+        user.id?.let { userId ->
+            val currentUser = FirebaseAuth.getInstance().currentUser
+            if (currentUser?.uid == userId) {
+                loadingDialog.dismiss()
+                Toast.makeText(requireContext(), "Cannot delete yourself", Toast.LENGTH_SHORT).show()
+                return@let
+            }
+
+            FirebaseFirestore.getInstance().collection("users")
+                .document(userId)
+                .delete()
+                .addOnSuccessListener {
+                    val updatedList = users.filter { it.id != userId }
+                    users.clear()
+                    users.addAll(updatedList)
+                    adapter.notifyDataSetChanged()
+
+                    loadingDialog.dismiss()
+                    Toast.makeText(requireContext(), "User deleted successfully", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    loadingDialog.dismiss()
+                    Toast.makeText(requireContext(), "Failed to delete user: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        } ?: run {
+            loadingDialog.dismiss()
+            Toast.makeText(requireContext(), "Invalid user ID", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun loadUsers() {
@@ -187,7 +237,7 @@ class UserManagementFragment : Fragment() {
                 .set(user)
                 .addOnSuccessListener {
                     Toast.makeText(requireContext(), "User updated successfully", Toast.LENGTH_SHORT).show()
-                    loadUsers() // Refresh the list
+                    loadUsers()
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(requireContext(), "Failed to update user: ${e.message}", Toast.LENGTH_SHORT).show()
