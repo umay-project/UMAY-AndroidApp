@@ -71,6 +71,8 @@ dependencies {
     implementation ("com.google.android.libraries.places:places:3.3.0")
     implementation ("com.google.android.gms:play-services-maps:18.1.0")
 
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
+
 
     testImplementation(libs.junit)
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")

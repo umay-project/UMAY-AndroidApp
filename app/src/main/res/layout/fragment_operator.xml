@@ -6,6 +6,15 @@
     android:gravity="center"
     android:padding="16dp">
 
+    <TextView
+        android:id="@+id/timerTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00:00:00"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"/>
+
     <Button
         android:id="@+id/startListeningButton"
         android:layout_width="wrap_content"

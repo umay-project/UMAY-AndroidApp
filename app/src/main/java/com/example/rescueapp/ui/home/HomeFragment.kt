@@ -510,7 +510,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 if (!response.isSuccessful) {
                     activity?.runOnUiThread {
                         loadingDialog.dismiss()
-                        Toast.makeText(requireContext(), "Server error: ${response.code()}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Server error: ${response.code}", Toast.LENGTH_SHORT).show()
                     }
                     return
                 }
@@ -521,7 +521,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                     val cacheDir = requireContext().cacheDir
                     val tempFile = File(cacheDir, "temp_audio")
                     tempFile.outputStream().use { fileOut ->
-                        response.body()?.byteStream()?.use { inputStream ->
+                        response.body?.byteStream()?.use { inputStream ->
                             inputStream.copyTo(fileOut)
                         }
                     }

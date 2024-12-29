@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity() {
 
         navView = binding.navView
 
-        // Handle authentication state
         if (auth.currentUser == null) {
             startLoginActivity()
             return
@@ -42,7 +41,6 @@ class MainActivity : AppCompatActivity() {
 
         setupNavigation()
 
-        // Check user role after navigation is set up
         auth.currentUser?.let { user ->
             checkUserRoles(user.uid)
         }
@@ -51,7 +49,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupNavigation() {
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
 
-        // Update AppBarConfiguration to include all top-level destinations
         val appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.navigation_home,
@@ -67,44 +64,42 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUserRoles(userId: String) {
+
         db.collection("users").document(userId)
             .get()
             .addOnSuccessListener { document ->
                 if (document != null) {
                     val role = document.getString("role")
+
+
                     val permissions = document.get("permissions") as? Map<String, Boolean>
                     val menu = navView.menu
 
-                    // Handle Operator Role
-                    if (role == "Operator") {
-                        if (menu.findItem(R.id.navigation_operator) == null) {
-                            menu.add(
-                                Menu.NONE,
-                                R.id.navigation_operator,
-                                Menu.NONE,
-                                "Operator"
-                            ).setIcon(R.drawable.operator)
+                    menu.findItem(R.id.navigation_operator)?.apply {
+                        isVisible = false
+                        Log.d("MenuVisibility", "Initially hiding operator menu")
+                    }
+                    menu.findItem(R.id.navigation_admin_dashboard)?.isVisible = false
+
+                    when (role) {
+                        "Operator" -> {
+                            Log.d("MenuVisibility", "User is operator, showing operator menu")
+                            menu.findItem(R.id.navigation_operator)?.apply {
+                                isVisible = true
+                                Log.d("MenuVisibility", "Operator menu visibility set to true")
+                            }
+                        }
+                        "Admin" -> {
+                            val hasAdminAccess = permissions?.get("adminDashboardAccess") ?: false
+                            menu.findItem(R.id.navigation_admin_dashboard)?.isVisible = hasAdminAccess
                         }
                     }
-
-                    // Handle Admin Role
-                    if (role == "Admin") {
-                        val adminMenuItem = menu.findItem(R.id.navigation_admin_dashboard)
-                            ?: menu.add(
-                                Menu.NONE,
-                                R.id.navigation_admin_dashboard,
-                                Menu.NONE,
-                                "Admin"
-                            ).setIcon(R.drawable.ic_admin)
-
-                        // Check admin permissions
-                        val hasAdminAccess = permissions?.get("adminDashboardAccess") ?: false
-                        adminMenuItem.isVisible = hasAdminAccess
-                    }
+                } else {
+                    Log.e("RoleCheck", "Document is null")
                 }
             }
             .addOnFailureListener { e ->
-                Log.e("MainActivity", "Error checking user roles", e)
+                Log.e("RoleCheck", "Error checking user roles", e)
             }
     }
 
