@@ -29,5 +29,11 @@ interface DebrisSiteApi {
         @Query("fileName") fileName: String,
         @Query("tag") tag: Boolean
     ): Call<Void>
+
+    @GET("get-false-taggeds")
+    fun getFalseTagged(): Call<List<DebrisSite>>
+
+    @GET("delete-entry")
+    fun deleteEntry(@Query("fileName") fileName: String): Call<Unit>
 }
 

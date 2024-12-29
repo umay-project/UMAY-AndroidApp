@@ -10,11 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Manage Users"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"/>
 
     <Button
-        android:id="@+id/manageDebrisButton"
+        android:id="@+id/manageFalseTaggedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Manage Debris Sites" />
+        android:text="Manage False Tagged Entries"/>
+
 </LinearLayout>
