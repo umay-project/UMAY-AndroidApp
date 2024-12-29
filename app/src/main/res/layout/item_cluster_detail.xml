@@ -20,9 +20,23 @@
         android:textSize="14sp"
         android:layout_marginBottom="8dp"/>
 
-    <Button
-        android:id="@+id/playButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Play Audio"/>
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/playButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play Audio"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/reportButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NOT HUMAN"/>
+
+    </LinearLayout>
 </LinearLayout>

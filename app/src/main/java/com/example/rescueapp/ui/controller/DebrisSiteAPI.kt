@@ -23,5 +23,11 @@ interface DebrisSiteApi {
         @Query("minTime") minTime: Long?,
         @Query("maxTime") maxTime: Long?
     ): Call<List<DebrisSite>>
+
+    @GET("tag-entry")
+    fun tagEntry(
+        @Query("fileName") fileName: String,
+        @Query("tag") tag: Boolean
+    ): Call<Void>
 }
 

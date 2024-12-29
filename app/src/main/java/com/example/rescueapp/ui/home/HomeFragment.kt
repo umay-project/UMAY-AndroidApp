@@ -130,7 +130,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             }
 
             override fun onError(status: com.google.android.gms.common.api.Status) {
-                Toast.makeText(requireContext(), "Error: $status", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(requireContext(), "Error: $status", Toast.LENGTH_SHORT).show()
             }
         })
 
@@ -410,9 +410,12 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             .inflate(R.layout.dialog_cluster_details, null)
         val recyclerView = dialogView.findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = ClusterDetailsAdapter(cluster.items.toList()) { audioSnippet ->
-            playAudioFromURL(audioSnippet)
-        }
+
+        recyclerView.adapter = ClusterDetailsAdapter(
+            cluster.items.toList(),
+            { audioSnippet -> playAudioFromURL(audioSnippet) },
+            { fileName -> reportAudioEntry(fileName) }
+        )
 
         AlertDialog.Builder(requireContext())
             .setTitle("Cluster Details")
@@ -422,7 +425,46 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             .show()
     }
 
+    private fun reportAudioEntry(fileName: String) {
+        val completeFileName = if (fileName.endsWith(".wav")) {
+            fileName
+        } else {
+            "$fileName.wav"
+        }
 
+        api.tagEntry(completeFileName, false).enqueue(object : Callback<Void> {
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                activity?.runOnUiThread {
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to report audio: ${t.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                activity?.runOnUiThread {
+                    if (response.isSuccessful) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Audio reported successfully",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "Failed to report audio: ${response.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                        Log.e("TagEntry", "Failed with code: ${response.code()}")
+                        Log.e("TagEntry", "URL called: /tag-entry?fileName=$completeFileName&tag=false")
+                    }
+                }
+            }
+        })
+    }
 
 
     private fun showMarkerDetails(item: DebrisClusterItem) {
