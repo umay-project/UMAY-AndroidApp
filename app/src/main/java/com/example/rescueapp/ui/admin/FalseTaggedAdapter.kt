@@ -13,7 +13,8 @@ import java.util.*
 
 class FalseTaggedAdapter(
     private val onPlayClick: (String) -> Unit,
-    private val onDeleteClick: (String) -> Unit
+    private val onDeleteClick: (String) -> Unit,
+    private val onMarkAsTrueClick: (String) -> Unit
 ) : RecyclerView.Adapter<FalseTaggedAdapter.ViewHolder>() {
 
     private var entries = listOf<DebrisSite>()
@@ -23,6 +24,7 @@ class FalseTaggedAdapter(
         val locationText: TextView = view.findViewById(R.id.locationText)
         val playButton: Button = view.findViewById(R.id.playButton)
         val deleteButton: Button = view.findViewById(R.id.deleteButton)
+        val markAsTrueButton: Button = view.findViewById(R.id.markAsTrueButton)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -44,9 +46,13 @@ class FalseTaggedAdapter(
         holder.deleteButton.setOnClickListener {
             onDeleteClick(entry.audioFileName)
         }
+
+        holder.markAsTrueButton.setOnClickListener {
+            onMarkAsTrueClick(entry.audioFileName)
+        }
     }
 
-    override fun getItemCount() = entries.size
+    override fun getItemCount(): Int = entries.size
 
     fun updateEntries(newEntries: List<DebrisSite>) {
         entries = newEntries

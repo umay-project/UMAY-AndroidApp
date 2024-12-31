@@ -1,5 +1,6 @@
 package com.example.rescueapp.ui.admin
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -81,11 +82,83 @@ class FalseTaggedManagementFragment : Fragment() {
                 playAudio(fileName)
             },
             onDeleteClick = { fileName ->
-                deleteEntry(fileName)
+                showDeleteConfirmationDialog(fileName)
+            },
+            onMarkAsTrueClick = { fileName ->
+                showMarkAsTrueConfirmationDialog(fileName)
             }
         )
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
+    }
+
+    private fun showMarkAsTrueConfirmationDialog(fileName: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Mark as True")
+            .setMessage("Are you sure you want to mark this entry as a true debris site?")
+            .setPositiveButton("Yes") { _, _ ->
+                markAsTrueTag(fileName)
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun markAsTrueTag(fileName: String) {
+        val completeFileName = if (fileName.endsWith(".wav")) {
+            fileName
+        } else {
+            "$fileName.wav"
+        }
+
+        val loadingDialog = AlertDialog.Builder(requireContext())
+            .setMessage("Updating tag...")
+            .setCancelable(false)
+            .create()
+        loadingDialog.show()
+
+        api.tagEntry(completeFileName, true).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                activity?.runOnUiThread {
+                    loadingDialog.dismiss()
+                    if (response.isSuccessful) {
+                        Toast.makeText(
+                            requireContext(),
+                            "Entry marked as true successfully",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        loadFalseTaggedEntries()
+                    } else {
+                        Toast.makeText(
+                            requireContext(),
+                            "Failed to update tag: ${response.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                activity?.runOnUiThread {
+                    loadingDialog.dismiss()
+                    Toast.makeText(
+                        requireContext(),
+                        "Error updating tag: ${t.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        })
+    }
+
+    private fun showDeleteConfirmationDialog(fileName: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Entry")
+            .setMessage("Are you sure you want to delete this entry?")
+            .setPositiveButton("Delete") { _, _ ->
+                deleteEntry(fileName)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun loadFalseTaggedEntries() {

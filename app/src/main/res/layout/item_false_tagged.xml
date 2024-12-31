@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -36,16 +37,26 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="PLAY AUDIO"
+                android:text="Play Audio"
                 android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/markAsTrueButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Mark as True"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
             <Button
                 android:id="@+id/deleteButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Delete Entry"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+                android:text="Delete"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:textColor="@android:color/holo_red_dark"/>
 
         </LinearLayout>
     </LinearLayout>
