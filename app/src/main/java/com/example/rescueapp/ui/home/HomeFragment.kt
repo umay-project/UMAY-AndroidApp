@@ -26,7 +26,6 @@ import com.example.rescueapp.R
 import com.example.rescueapp.ui.controller.ClusterDetailsAdapter
 import com.example.rescueapp.ui.controller.CustomClusterRenderer
 import com.example.rescueapp.ui.controller.api
-import com.example.rescueapp.ui.dashboard.DashboardViewModel
 import com.example.rescueapp.ui.models.DebrisClusterItem
 import com.example.rescueapp.ui.models.DebrisSite
 import com.example.rescueapp.ui.models.FakeDebrisSite
@@ -65,7 +64,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var map: GoogleMap
     private lateinit var clusterManager: ClusterManager<DebrisClusterItem>
-    private lateinit var dashboardViewModel: DashboardViewModel
     private lateinit var homeViewModel: HomeViewModel
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
     private var lastBounds: LatLngBounds? = null
@@ -106,7 +104,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
             Places.initialize(requireContext(), API_KEY)
         }
 
-        dashboardViewModel = ViewModelProvider(requireActivity())[DashboardViewModel::class.java]
         homeViewModel = ViewModelProvider(requireActivity())[HomeViewModel::class.java]
 
         val autocompleteFragment = AutocompleteSupportFragment.newInstance()
@@ -236,12 +233,6 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
 
                 if (lastBounds == null || !lastBounds!!.contains(bounds.northeast) || !lastBounds!!.contains(bounds.southwest)) {
                     lastBounds = bounds
-                    dashboardViewModel.updateBounds(
-                        bounds.southwest.latitude,
-                        bounds.northeast.latitude,
-                        bounds.southwest.longitude,
-                        bounds.northeast.longitude
-                    )
 
                     fetchAndClusterMarkers(
                         bounds.southwest.latitude,

@@ -7,12 +7,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.rescueapp.R
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import okhttp3.*
@@ -21,13 +22,13 @@ import java.util.concurrent.TimeUnit
 
 class OperatorFragment : Fragment() {
 
-    private lateinit var startListeningButton: Button
-    private lateinit var stopListeningButton: Button
+    private lateinit var listenButton: MaterialButton
     private lateinit var timerTextView: TextView
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private val client = OkHttpClient()
 
+    private var isListening = false
     private var seconds = 0
     private var isTimerRunning = false
     private val handler = Handler(Looper.getMainLooper())
@@ -43,14 +44,12 @@ class OperatorFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        startListeningButton = rootView.findViewById(R.id.startListeningButton)
-        stopListeningButton = rootView.findViewById(R.id.stopListeningButton)
+        listenButton = rootView.findViewById(R.id.listenButton)
         timerTextView = rootView.findViewById(R.id.timerTextView)
 
-        startListeningButton.visibility = View.GONE
-        stopListeningButton.visibility = View.GONE
-
+        listenButton.visibility = View.GONE
         initializeTimer()
+        setupButton()
 
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -94,14 +93,42 @@ class OperatorFragment : Fragment() {
         updateTimerDisplay()
     }
 
+    private fun setupButton() {
+        listenButton.setOnClickListener {
+            if (!isListening) {
+                startListening()
+            } else {
+                stopListening()
+            }
+        }
+    }
+
+    private fun startListening() {
+        isListening = true
+        listenButton.apply {
+            text = "LISTENING"
+            setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.success))
+        }
+        startTimer()
+        sendPostRequest("https://raspi.develop-er.org/run-script")
+    }
+
+    private fun stopListening() {
+        isListening = false
+        listenButton.apply {
+            text = "START"
+            setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.primary))
+        }
+        stopTimer()
+        sendPostRequest("https://raspi.develop-er.org/stop-script")
+    }
+
     private fun checkOperatorAccess(userId: String) {
         db.collection("users").document(userId)
             .get()
             .addOnSuccessListener { document ->
                 if (document != null && document.getString("role") == "Operator") {
-                    startListeningButton.visibility = View.VISIBLE
-                    stopListeningButton.visibility = View.VISIBLE
-                    setupButtons()
+                    listenButton.visibility = View.VISIBLE
                 } else {
                     navigateBack()
                 }
@@ -116,18 +143,6 @@ class OperatorFragment : Fragment() {
         activity?.runOnUiThread {
             Toast.makeText(requireContext(), "Access denied: Operator privileges required", Toast.LENGTH_SHORT).show()
             findNavController().navigateUp()
-        }
-    }
-
-    private fun setupButtons() {
-        startListeningButton.setOnClickListener {
-            startTimer()
-            sendPostRequest("https://raspi.develop-er.org/run-script")
-        }
-
-        stopListeningButton.setOnClickListener {
-            stopTimer()
-            sendPostRequest("https://raspi.develop-er.org/stop-script")
         }
     }
 

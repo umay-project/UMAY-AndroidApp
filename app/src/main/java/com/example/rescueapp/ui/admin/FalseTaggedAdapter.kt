@@ -8,13 +8,15 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.rescueapp.R
 import com.example.rescueapp.ui.models.DebrisSite
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import java.util.*
 
 class FalseTaggedAdapter(
     private val onPlayClick: (String) -> Unit,
-    private val onDeleteClick: (String) -> Unit,
-    private val onMarkAsTrueClick: (String) -> Unit
+    private val onMarkAsTrueClick: (String) -> Unit,
+    private val onDeleteClick: (String) -> Unit
 ) : RecyclerView.Adapter<FalseTaggedAdapter.ViewHolder>() {
 
     private var entries = listOf<DebrisSite>()
@@ -22,9 +24,9 @@ class FalseTaggedAdapter(
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val timestampText: TextView = view.findViewById(R.id.timestampText)
         val locationText: TextView = view.findViewById(R.id.locationText)
-        val playButton: Button = view.findViewById(R.id.playButton)
-        val deleteButton: Button = view.findViewById(R.id.deleteButton)
-        val markAsTrueButton: Button = view.findViewById(R.id.markAsTrueButton)
+        val playButton: FloatingActionButton = view.findViewById(R.id.playButton)
+        val markTrueButton: MaterialButton = view.findViewById(R.id.markTrueButton)
+        val deleteButton: MaterialButton = view.findViewById(R.id.deleteButton)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -43,16 +45,16 @@ class FalseTaggedAdapter(
             onPlayClick(entry.audioFileName)
         }
 
+        holder.markTrueButton.setOnClickListener {
+            onMarkAsTrueClick(entry.audioFileName)
+        }
+
         holder.deleteButton.setOnClickListener {
             onDeleteClick(entry.audioFileName)
         }
-
-        holder.markAsTrueButton.setOnClickListener {
-            onMarkAsTrueClick(entry.audioFileName)
-        }
     }
 
-    override fun getItemCount(): Int = entries.size
+    override fun getItemCount() = entries.size
 
     fun updateEntries(newEntries: List<DebrisSite>) {
         entries = newEntries
