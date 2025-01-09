@@ -73,6 +73,9 @@ dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:4.9.0")
 
+    implementation ("com.google.android.material:material:1.9.0")
+
+
 
     testImplementation(libs.junit)
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")

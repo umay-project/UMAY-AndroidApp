@@ -16,6 +16,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import android.media.MediaPlayer
 import android.util.Log
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +28,21 @@ class FalseTaggedManagementFragment : Fragment() {
     private lateinit var adapter: FalseTaggedAdapter
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                findNavController().navigateUp()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +67,8 @@ class FalseTaggedManagementFragment : Fragment() {
 
         return view
     }
+
+
 
     private fun checkUserPermissions(userId: String) {
         db.collection("users").document(userId)

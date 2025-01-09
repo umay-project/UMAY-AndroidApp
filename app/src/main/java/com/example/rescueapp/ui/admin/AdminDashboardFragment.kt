@@ -5,17 +5,22 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.rescueapp.R
+import com.example.rescueapp.ui.controller.api
+import com.example.rescueapp.ui.models.DebrisSite
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 class AdminDashboardFragment : Fragment() {
-    private lateinit var manageUsersButton: Button
-    private lateinit var manageFalseTaggedButton: Button
+    private lateinit var manageUsersCard: CardView
+    private lateinit var manageFalseTaggedCard: CardView
+    private lateinit var totalUsersCount: TextView
+    private lateinit var falseTaggedCount: TextView
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
 
@@ -29,11 +34,13 @@ class AdminDashboardFragment : Fragment() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        manageUsersButton = view.findViewById(R.id.manageUsersButton)
-        manageFalseTaggedButton = view.findViewById(R.id.manageFalseTaggedButton)
+        manageUsersCard = view.findViewById(R.id.manageUsersCard)
+        manageFalseTaggedCard = view.findViewById(R.id.manageFalseTaggedCard)
+        totalUsersCount = view.findViewById(R.id.totalUsersCount)
+        falseTaggedCount = view.findViewById(R.id.falseTaggedCount)
 
-        manageUsersButton.visibility = View.GONE
-        manageFalseTaggedButton.visibility = View.GONE
+        manageUsersCard.visibility = View.GONE
+        manageFalseTaggedCard.visibility = View.GONE
 
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -42,7 +49,8 @@ class AdminDashboardFragment : Fragment() {
             Toast.makeText(requireContext(), "User not authenticated!", Toast.LENGTH_SHORT).show()
         }
 
-        setupButtons()
+        setupClickListeners()
+        loadStatistics()
 
         return view
     }
@@ -61,8 +69,8 @@ class AdminDashboardFragment : Fragment() {
                         val hasAdminAccess = permissions?.get("adminDashboardAccess") ?: false
 
                         if (hasAdminAccess) {
-                            manageUsersButton.visibility = if (canEditUsers) View.VISIBLE else View.GONE
-                            manageFalseTaggedButton.visibility = if (canEditDisasterData) View.VISIBLE else View.GONE
+                            manageUsersCard.visibility = if (canEditUsers) View.VISIBLE else View.GONE
+                            manageFalseTaggedCard.visibility = if (canEditDisasterData) View.VISIBLE else View.GONE
                         } else {
                             showAccessDenied()
                         }
@@ -79,20 +87,60 @@ class AdminDashboardFragment : Fragment() {
             }
     }
 
-    private fun setupButtons() {
-        manageUsersButton.setOnClickListener {
+    private fun setupClickListeners() {
+        manageUsersCard.setOnClickListener {
             findNavController().navigate(R.id.action_adminDashboard_to_userManagement)
         }
 
-        manageFalseTaggedButton.setOnClickListener {
+        manageFalseTaggedCard.setOnClickListener {
             findNavController().navigate(R.id.action_adminDashboard_to_falseTaggedManagement)
         }
     }
 
+    private fun loadStatistics() {
+        db.collection("users").get()
+            .addOnSuccessListener { documents ->
+                totalUsersCount.text = documents.size().toString()
+            }
+            .addOnFailureListener { e ->
+                Log.e("Statistics", "Error getting users count", e)
+                totalUsersCount.text = "?"
+            }
+        loadFalseTaggedCount()
+    }
+
+    private fun loadFalseTaggedCount() {
+        api.getFalseTagged().enqueue(object : retrofit2.Callback<List<DebrisSite>> {
+            override fun onResponse(
+                call: retrofit2.Call<List<DebrisSite>>,
+                response: retrofit2.Response<List<DebrisSite>>
+            ) {
+                if (response.isSuccessful) {
+                    val count = response.body()?.size ?: 0
+                    activity?.runOnUiThread {
+                        falseTaggedCount.text = count.toString()
+                    }
+                } else {
+                    Log.e("Statistics", "Error: ${response.code()}")
+                    activity?.runOnUiThread {
+                        falseTaggedCount.text = "?"
+                    }
+                }
+            }
+
+            override fun onFailure(call: retrofit2.Call<List<DebrisSite>>, t: Throwable) {
+                Log.e("Statistics", "Error getting false tagged count", t)
+                activity?.runOnUiThread {
+                    falseTaggedCount.text = "?"
+                }
+            }
+        })
+    }
+
     private fun showAccessDenied() {
         Toast.makeText(requireContext(), "Access denied: Admin privileges required", Toast.LENGTH_SHORT).show()
-        manageUsersButton.visibility = View.GONE
-        manageFalseTaggedButton.visibility = View.GONE
+        manageUsersCard.visibility = View.GONE
+        manageFalseTaggedCard.visibility = View.GONE
         findNavController().navigateUp()
     }
 

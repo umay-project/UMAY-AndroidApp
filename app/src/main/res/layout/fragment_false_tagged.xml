@@ -13,9 +13,11 @@
             android:id="@+id/topAppBar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:layout_gravity="center"
             android:background="@color/primary"
             app:title="False Tagged Entries"
-            app:titleTextColor="@color/white"/>
+            app:titleTextColor="@color/white" />
+
 
     </com.google.android.material.appbar.AppBarLayout>
 

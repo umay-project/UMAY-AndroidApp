@@ -39,8 +39,8 @@
 
             <ImageButton
                 android:id="@+id/btnClearTime"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="60dp"
+                android:layout_height="56dp"
                 android:layout_marginStart="4dp"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:contentDescription="Clear time filters" />

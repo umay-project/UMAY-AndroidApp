@@ -1,9 +1,6 @@
 <resources>
-    <string name="app_name">RescueApp</string>
+    <string name="app_name">UMAY</string>
     <string name="title_home">Map</string>
     <string name="title_profile">Profile</string>
     <string name="title_operators">Operator</string>
-    <string name="select_city" />
-    <string name="select_district" />
-    <string name="select_neighborhood" />
 </resources>

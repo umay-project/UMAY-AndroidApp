@@ -13,6 +13,7 @@ import com.example.rescueapp.ui.models.User
 import com.google.firebase.firestore.FirebaseFirestore
 import android.app.AlertDialog
 import android.util.Log
+import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.CheckBox
 import android.widget.Spinner
@@ -54,6 +55,20 @@ class UserManagementFragment : Fragment() {
         }
 
         return view
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                findNavController().navigateUp()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun checkUserPermissions(userId: String) {
